@@ -228,8 +228,19 @@ SocketNamespace.prototype.handleDisconnect = function (sid, reason, raiseOnDisco
   if (this.sockets[sid] && this.sockets[sid].readable) {
     if (raiseOnDisconnect) this.sockets[sid].onDisconnect(reason);
     delete this.sockets[sid];
-  }
+  } 
 };
+
+/**
+ * Called when a socket disconnects everytime.
+ * Raven Add
+ * @api private
+ */
+
+SocketNamespace.prototype.handleEveryDisconnect = function (sid) {
+    this.$emit('everyDisconnect', this.sockets[sid]);
+}
+
 
 /**
  * Performs authentication.
@@ -290,6 +301,8 @@ SocketNamespace.prototype.handlePacket = function (sessid, packet) {
 
     // emit connection event
     self.$emit('connection', socket);
+
+    //self.$emit('raven', socket);
   };
 
   switch (packet.type) {

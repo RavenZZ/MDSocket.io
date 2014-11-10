@@ -144,6 +144,10 @@ function Manager (server, options) {
   this.sockets.on('connection', function (conn) {
     self.emit('connection', conn);
   });
+  //this.sockets.on('raven', function () {
+  //    //console.log('raven');
+  //    //self.emit('raven', {});
+  //});
 
   this.sequenceNumber = Date.now() | 0;
  
@@ -526,13 +530,18 @@ Manager.prototype.onClientMessage = function (id, packet) {
  */
 
 Manager.prototype.onClientDisconnect = function (id, reason) {
+    for (var name in this.namespaces) {
+        if (this.namespaces.hasOwnProperty(name)) {
+            this.namespaces[name].handleEveryDisconnect(id);
+        }
+    }
   for (var name in this.namespaces) {
     if (this.namespaces.hasOwnProperty(name)) {
       this.namespaces[name].handleDisconnect(id, reason, typeof this.roomClients[id] !== 'undefined' &&
         typeof this.roomClients[id][name] !== 'undefined');
     }
   }
-
+  
   this.onDisconnect(id);
 };
 
@@ -1036,6 +1045,11 @@ Manager.prototype.garbageCollection = function () {
     handshake = this.handshaken[ids[i]];
 
     if ('issued' in handshake && (now - handshake.issued) >= 3E4) {
+        for (var name in this.namespaces) {
+            if (this.namespaces.hasOwnProperty(name)) {
+                this.namespaces[name].handleEveryDisconnect(ids[i]);
+            }
+        }
       this.onDisconnect(ids[i]);
     }
   }
